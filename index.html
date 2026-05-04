@@ -54,22 +54,6 @@ body::after{
 
 
 
-/* ── YT: tamaño real pero invisible para que iOS lo reproduzca ── */
-
-#yt-wrap{
-
-  position:fixed; left:-9999px; top:-9999px;
-
-  width:320px; height:180px; overflow:hidden;
-
-  pointer-events:none; z-index:-1;
-
-}
-
-#yt-frame{width:320px;height:180px;border:0;}
-
-
-
 /* ── INTRO ── */
 
 #intro{
@@ -422,15 +406,11 @@ body::after{
 
 <canvas id="confetti-c"></canvas>
 
-
-
-<!-- YouTube: iframe con tamaño real pero fuera de pantalla para que iOS lo reproduzca -->
-
-<div id="yt-wrap">
-
-  <div id="yt-frame"></div>
-
-</div>
+<!-- Audio de fondo: poné tu archivo de audio en la misma carpeta y cambiá "cancion.mp3" por el nombre real -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="cancion.mp3" type="audio/mpeg">
+  <source src="cancion.ogg" type="audio/ogg">
+</audio>
 
 
 
@@ -904,73 +884,19 @@ setInterval(spawnHeart,1700);for(let i=0;i<5;i++) setTimeout(spawnHeart,i*600);
 
 
 
-// ─── YOUTUBE ───
+// ─── MÚSICA DE FONDO ───
 
-// Solución para iOS: el iframe necesita ser creado por la API, no un div reemplazado
+// Se inicia al hacer click en el botón de abrir (requerido por iOS para permitir audio)
 
-let ytPlayer=null;
+function startMusic(){
 
-function loadYT(){
+  const music=document.getElementById('bgMusic');
 
-  if(document.getElementById('yt-api')) return;
+  music.volume=0.7;
 
-  const s=document.createElement('script');
-
-  s.id='yt-api';s.src='https:/www.youtube.com/iframe_api';
-
-  document.head.appendChild(s);
+  music.play().catch(()=>{});
 
 }
-
-window.onYouTubeIframeAPIReady=function(){
-
-  // Crear el player dentro del div, con tamaño real (no 1px)
-
-  ytPlayer=new YT.Player('yt-frame',{
-
-    width:'320',height:'180',
-
-    videoId:'oXWbIVNBoW4',
-
-    playerVars:{
-
-      autoplay:1,controls:0,loop:1,
-
-      playlist:'oXWbIVNBoW4',
-
-      playsinline:1,mute:0,
-
-      rel:0,modestbranding:1
-
-    },
-
-    events:{
-
-      onReady:function(e){
-
-        e.target.setVolume(70);
-
-        e.target.playVideo();
-
-      },
-
-      onStateChange:function(e){
-
-        // Si se pausa o termina, volver a reproducir
-
-        if(e.data===YT.PlayerState.PAUSED||e.data===YT.PlayerState.ENDED){
-
-          setTimeout(()=>{ try{ e.target.playVideo(); }catch(ex){} },500);
-
-        }
-
-      }
-
-    }
-
-  });
-
-};
 
 
 
@@ -982,7 +908,7 @@ function abrir(){
 
   playChime();
 
-  loadYT();
+  startMusic();
 
   document.getElementById('intro').classList.add('out');
 
@@ -1026,8 +952,6 @@ function scrollReveal(){
 
 // ─── PASTEL: VELITAS ───
 
-// IDs de los grupos de flamas [outer, inner]
-
 const candleGroups=[
 
   ['flame1','flame1i'],
@@ -1063,8 +987,6 @@ function blowCandle(index){
   const iel=document.getElementById(in_);
 
   if(!oel||oel.classList.contains('out')) return;
-
-  // Animación de extinción
 
   oel.style.transition='opacity 0.4s ease,transform 0.4s ease';
 
@@ -1106,17 +1028,11 @@ function allCandlesOut(){
 
 
 
-// Agitar el teléfono
-
 function initShake(){
 
   if(typeof DeviceMotionEvent==='undefined') return;
 
-  // iOS 13+ requiere permiso
-
   if(typeof DeviceMotionEvent.requestPermission==='function'){
-
-    // Se pedirá cuando el usuario llegue a la sección
 
     document.getElementById('shake-indicator').addEventListener('click',askMotionPermission,{once:true});
 
@@ -1160,7 +1076,7 @@ function handleShake(e){
 
   const now=Date.now();
 
-  if(now-lastShakeTime<300) return; // throttle
+  if(now-lastShakeTime<300) return;
 
   const acc=e.accelerationIncludingGravity||e.acceleration;
 
@@ -1176,7 +1092,7 @@ function handleShake(e){
 
   const force=Math.sqrt(dx*dx+dy*dy+dz*dz);
 
-  if(force>18){ // umbral para detectar agitada
+  if(force>18){
 
     lastShakeTime=now;
 
@@ -1189,8 +1105,6 @@ function handleShake(e){
 }
 
 
-
-// Fallback: tocar el pastel en desktop
 
 document.addEventListener('DOMContentLoaded',()=>{
 
